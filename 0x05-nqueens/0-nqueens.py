@@ -2,6 +2,7 @@
 '''N queens Backtracking'''
 
 
+import sys
 from typing import List
 
 
@@ -16,7 +17,7 @@ def check_vertically(board: List[List[int]], i: int, index: int, set, n: int):
     '''check the row 'i' of the board'''
 
     # y: iterate the columns
-    if set == True:
+    if set:
         for y in range(n):
             if board[i][y] == -1:
                 board[i][y] = index
@@ -30,7 +31,7 @@ def check_horizontally(board: List[List[int]], j: int, index, set, n: int):
     '''check the column 'j' of the board'''
 
     # x: iterate the rows
-    if set == True:
+    if set:
         for x in range(n):
             if board[x][j] == -1:
                 board[x][j] = index
@@ -40,15 +41,18 @@ def check_horizontally(board: List[List[int]], j: int, index, set, n: int):
                 board[x][j] = -1
 
 
-def check_diagonally(board: List[List[int]], i: int, j: int, index, set, n: int):
-    '''check diagonally downward and upward the board from indexes "i" and "j"'''
+def check_diagonally(
+        board: List[List[int]], i: int, j: int, index, set, n: int):
+    '''
+    check diagonally downward and upward the board from indexes "i" and "j"
+    '''
 
     dr_i = dl_i = ur_i = ul_i = i
     dr_j = dl_j = ur_j = ul_j = j
 
     # check downward right
     while dr_i < n and dr_j < n:
-        if set == True:
+        if set:
             if board[dr_i][dr_j] == -1:
                 board[dr_i][dr_j] = index
         else:
@@ -60,7 +64,7 @@ def check_diagonally(board: List[List[int]], i: int, j: int, index, set, n: int)
 
     # check downward left
     while dl_i < n and dl_j >= 0:
-        if set == True:
+        if set:
             if board[dl_i][dl_j] == -1:
                 board[dl_i][dl_j] = index
         else:
@@ -71,7 +75,7 @@ def check_diagonally(board: List[List[int]], i: int, j: int, index, set, n: int)
 
     # check upward left
     while ul_i >= 0 and ul_j >= 0:
-        if set == True:
+        if set:
             if board[ul_i][ul_j] == -1:
                 board[ul_i][ul_j] = index
         else:
@@ -82,7 +86,7 @@ def check_diagonally(board: List[List[int]], i: int, j: int, index, set, n: int)
 
     # check upward right
     while ur_i >= 0 and ur_j < n:
-        if set == True:
+        if set:
             if board[ur_i][ur_j] == -1:
                 board[ur_i][ur_j] = index
         else:
@@ -111,7 +115,14 @@ def get_choices(board, row, n):
     return choices
 
 
-def n_queens(board: List[List[int]], n: int, choices: List, solution: List, solutions: List[List[int]]):
+def n_queens(
+        board: List[List[int]], n: int, choices: List,
+        solution: List, solutions: List[List[int]]):
+    '''
+    recursive function to get all the placements
+    of the queens in the board using:
+    Backtracking algorithm
+    '''
 
     if len(solution) == n:
         solutions.append(solution)
@@ -122,10 +133,10 @@ def n_queens(board: List[List[int]], n: int, choices: List, solution: List, solu
         i, j = c
 
         board[i][j] = j
-        solution.append((i, j))
+        solution.append([i, j])
         check_from_pos(board, i, j, j, True, n)
         next_line_choices = get_choices(board, i + 1, n)
-        # print(f'c = {c} next_line_choices = {next_line_choices} board = {board}')
+
         n_queens(board, n, next_line_choices, solution, solutions)
         check_from_pos(board, i, j, j, False, n)
         solution.pop()
@@ -135,13 +146,28 @@ def n_queens(board: List[List[int]], n: int, choices: List, solution: List, solu
 
 def main():
     '''main function'''
+    if len(sys.argv) != 2:
+        print("Usage: nqueens N")
+        sys.exit(1)
 
-    n = 8
-    board = [[-1] * n for _ in range(n)]
+    try:
+        n = int(sys.argv[1])
+        if n < 4:
+            print('N must be at least 4')
+            sys.exit(1)
 
-    choices = get_choices(board, 0, n)
+        board = [[-1] * n for _ in range(n)]
 
-    n_queens(board, n, choices, [], [])
+        choices = get_choices(board, 0, n)
+        solutions = []
+
+        n_queens(board, n, choices, [], solutions)
+
+        # print(solutions)
+
+    except ValueError:
+        print("N must be a number")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
