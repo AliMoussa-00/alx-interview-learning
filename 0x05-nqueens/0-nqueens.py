@@ -6,105 +6,99 @@ import sys
 from typing import List
 
 
-def reset_board(board: List[List[int]], i, j,  n):
-    '''reset the board by filling it with -1'''
-    for i in range(n):
-        for j in range(n):
-            board[i][j] = -1
-
-
-def check_vertically(board: List[List[int]], i: int, index: int, set, n: int):
-    '''check the row 'i' of the board'''
+def mark_vertically(board: List[List[int]], i: int, mark: int, set, n: int):
+    '''Mark positions attacked by the queen in the row'''
 
     # y: iterate the columns
     if set:
         for y in range(n):
             if board[i][y] == -1:
-                board[i][y] = index
+                board[i][y] = mark
     else:
         for y in range(n):
-            if board[i][y] == index:
+            if board[i][y] == mark:
                 board[i][y] = -1
 
 
-def check_horizontally(board: List[List[int]], j: int, index, set, n: int):
-    '''check the column 'j' of the board'''
+def mark_horizontally(board: List[List[int]], j: int, mark, set, n: int):
+    '''Mark positions attacked by the queen in the column'''
 
     # x: iterate the rows
     if set:
         for x in range(n):
             if board[x][j] == -1:
-                board[x][j] = index
+                board[x][j] = mark
     else:
         for x in range(n):
-            if board[x][j] == index:
+            if board[x][j] == mark:
                 board[x][j] = -1
 
 
-def check_diagonally(
-        board: List[List[int]], i: int, j: int, index, set, n: int):
+def mark_diagonally(
+        board: List[List[int]], i: int, j: int, mark, set, n: int):
     '''
-    check diagonally downward and upward the board from indexes "i" and "j"
+    Mark positions attacked by the queen, diagonally
     '''
 
     dr_i = dl_i = ur_i = ul_i = i
     dr_j = dl_j = ur_j = ul_j = j
 
-    # check downward right
+    # mark downward right
     while dr_i < n and dr_j < n:
         if set:
             if board[dr_i][dr_j] == -1:
-                board[dr_i][dr_j] = index
+                board[dr_i][dr_j] = mark
         else:
-            if board[dr_i][dr_j] == index:
+            if board[dr_i][dr_j] == mark:
                 board[dr_i][dr_j] = -1
 
         dr_i += 1
         dr_j += 1
 
-    # check downward left
+    # mark downward left
     while dl_i < n and dl_j >= 0:
         if set:
             if board[dl_i][dl_j] == -1:
-                board[dl_i][dl_j] = index
+                board[dl_i][dl_j] = mark
         else:
-            if board[dl_i][dl_j] == index:
+            if board[dl_i][dl_j] == mark:
                 board[dl_i][dl_j] = -1
         dl_i += 1
         dl_j -= 1
 
-    # check upward left
+    # mark upward left
     while ul_i >= 0 and ul_j >= 0:
         if set:
             if board[ul_i][ul_j] == -1:
-                board[ul_i][ul_j] = index
+                board[ul_i][ul_j] = mark
         else:
-            if board[ul_i][ul_j] == index:
+            if board[ul_i][ul_j] == mark:
                 board[ul_i][ul_j] = -1
         ul_i -= 1
         ul_j -= 1
 
-    # check upward right
+    # mark upward right
     while ur_i >= 0 and ur_j < n:
         if set:
             if board[ur_i][ur_j] == -1:
-                board[ur_i][ur_j] = index
+                board[ur_i][ur_j] = mark
         else:
-            if board[ur_i][ur_j] == index:
+            if board[ur_i][ur_j] == mark:
                 board[ur_i][ur_j] = -1
         ur_i -= 1
         ur_j += 1
 
 
-def check_from_pos(board, queen_i, queen_j, index, set, n):
-    '''check all the possible routes of a queen at position'''
-    check_horizontally(board, queen_j, index, set, n)
-    check_vertically(board, queen_i, index, set, n)
-    check_diagonally(board, queen_i, queen_j, index, set, n)
+def mark_attacked_positions(
+        board, queen_i, queen_j, mark, set, n):
+    '''Mark positions attacked by the queen placed at (i, j)'''
+    mark_horizontally(board, queen_j, mark, set, n)
+    mark_vertically(board, queen_i, mark, set, n)
+    mark_diagonally(board, queen_i, queen_j, mark, set, n)
 
 
-def get_choices(board, row, n):
-    '''get the valid choices in a row'''
+def get_available_positions(board, row, n):
+    '''Get available positions for queen placement in a row'''
 
     choices = []
     if row < n:
@@ -115,31 +109,28 @@ def get_choices(board, row, n):
     return choices
 
 
-def n_queens(
-        board: List[List[int]], n: int, choices: List,
-        solution: List, solutions: List[List[int]]):
+def n_queens(board, n, choices, queens, solutions):
     '''
     recursive function to get all the placements
     of the queens in the board using:
     Backtracking algorithm
     '''
 
-    if len(solution) == n:
-        solutions.append(solution)
-        print(solution)
+    if len(queens) == n:
+        solutions.append(queens[:])  # Append a valid queens positioning
         return
 
     for c in choices:
         i, j = c
 
         board[i][j] = j
-        solution.append([i, j])
-        check_from_pos(board, i, j, j, True, n)
-        next_line_choices = get_choices(board, i + 1, n)
+        queens.append([i, j])
+        mark_attacked_positions(board, i, j, j, True, n)
+        next_line_choices = get_available_positions(board, i + 1, n)
 
-        n_queens(board, n, next_line_choices, solution, solutions)
-        check_from_pos(board, i, j, j, False, n)
-        solution.pop()
+        n_queens(board, n, next_line_choices, queens, solutions)
+        mark_attacked_positions(board, i, j, j, False, n)
+        queens.pop()
 
     return
 
@@ -158,12 +149,13 @@ def main():
 
         board = [[-1] * n for _ in range(n)]
 
-        choices = get_choices(board, 0, n)
+        choices = get_available_positions(board, 0, n)
         solutions = []
 
         n_queens(board, n, choices, [], solutions)
 
-        # print(solutions)
+        for solution in solutions:
+            print(solution)
 
     except ValueError:
         print("N must be a number")
