@@ -51,10 +51,12 @@ def makeChange(coins, total):
     coins.sort(reverse=True)
     list_of_counts = []
 
+    i = 0
     for start in coins:
 
-        coins_count = get_coins_count(start, coins[:], total)
+        coins_count = get_coins_count(start, coins[i:], total)
         list_of_counts.append(coins_count)
+        i += 1
 
     if max(list_of_counts) == -1:
         return -1
